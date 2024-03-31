@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,6 +51,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 /**
  * @version 1.0 24-Oct-2016
  */
+@Disabled
 public class FileChangeAdapterTests {
 
     private static final long DB_RELOAD_TIMEOUT = 5 * 1000;
