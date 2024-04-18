@@ -28,7 +28,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Scanner;
-
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 
@@ -37,99 +36,114 @@ import org.hamcrest.collection.IsIterableContainingInOrder;
  * @version 1.0 06-Oct-2016
  */
 public class TestUtils {
-  public static void checkLastLines(File jsonFile, String[] expectedLinesAtEnd) {
-    CircularQueue<String> queue = new CircularQueue<String>(expectedLinesAtEnd.length);
-
-    Scanner sc = null;
-    try {
-      sc = new Scanner(jsonFile, "UTF-8");
-      while (sc.hasNextLine()) {
-        queue.add(sc.nextLine());
-      }
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } finally {
-      if (null != sc) {
-        sc.close();
-      }
+    public static void checkLastLines(File jsonFile, String[] expectedLinesAtEnd) {
+        CircularQueue<String> queue = queue(jsonFile, expectedLinesAtEnd.length);
+        MatcherAssert.assertThat(queue, IsIterableContainingInOrder.contains(expectedLinesAtEnd));
     }
-    MatcherAssert.assertThat(queue, IsIterableContainingInOrder.contains(expectedLinesAtEnd));
-  }
 
-  public static boolean appendDirectToFile(File file, String data) {
-    boolean retval = false;
-    FileWriter fw = null;
-    try {
-      fw = new FileWriter(file, true);
-      fw.write(data);
-      fw.write("\n");
-      retval = true;
-    } catch (IOException e) {
-      retval = false;
-      e.printStackTrace();
-    } finally {
-      if (null != fw) {
+    private static CircularQueue<String> queue(File jsonFile, int length) {
+        CircularQueue<String> queue = new CircularQueue<>(length);
+
+        Scanner sc = null;
         try {
-          fw.close();
-        } catch (IOException e) {
-          System.out.println(e);
-        }
-      }
-    }
-    return retval;
-  }
-  
-  public static int getNoOfLinesInFile(File file) {
-    int lines = 0;
-    FileReader f = null;
-    BufferedReader reader =  null;
-    try {
-      f = new FileReader(file);
-      reader = new BufferedReader(f);
-      while (reader.readLine() != null) {
-        lines++;
-      }
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } finally {
-      if (null != reader) {
-        try {
-          reader.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-      if (null != f) {
-        try {
-          f.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return lines;
-  }
-  
-  @SuppressWarnings("serial")
-  public static class CircularQueue<E> extends LinkedList<E> {
-    private int limit;
+            sc = new Scanner(jsonFile, "UTF-8");
+            while (sc.hasNextLine()) {
 
-    public CircularQueue(int limit) {
-        this.limit = limit;
+                String nextLine = sc.nextLine();
+                System.out.println(nextLine);
+                queue.add(nextLine);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != sc) {
+                sc.close();
+            }
+        }
+        return queue;
     }
 
-    @Override
-    public boolean add(E o) {
-        super.add(o);
-        while (size() > limit) { super.remove(); }
-        return true;
+    public static String lastLine(File jsonFile) {
+        CircularQueue<String> queue = queue(jsonFile, 1);
+        return queue.getLast();
     }
-  }
-  
-  public static boolean isMac() {
-    String OS = System.getProperty("os.name").toLowerCase();
-    return (OS.indexOf("mac") >= 0);
-  }
+
+    public static boolean appendDirectToFile(File file, String data) {
+        boolean retval = false;
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(file, true);
+            fw.write(data);
+            fw.write("\n");
+            retval = true;
+        } catch (IOException e) {
+            retval = false;
+            e.printStackTrace();
+        } finally {
+            if (null != fw) {
+                try {
+                    fw.close();
+                } catch (IOException e) {
+                    System.out.println(e);
+                }
+            }
+        }
+        return retval;
+    }
+
+    public static int getNoOfLinesInFile(File file) {
+        int lines = 0;
+        FileReader f = null;
+        BufferedReader reader = null;
+        try {
+            f = new FileReader(file);
+            reader = new BufferedReader(f);
+            while (reader.readLine() != null) {
+                lines++;
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (null != reader) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (null != f) {
+                try {
+                    f.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return lines;
+    }
+
+    @SuppressWarnings("serial")
+    public static class CircularQueue<E> extends LinkedList<E> {
+        private int limit;
+
+        public CircularQueue(int limit) {
+            this.limit = limit;
+        }
+
+        @Override
+        public boolean add(E o) {
+            super.add(o);
+            while (size() > limit) {
+                super.remove();
+            }
+            return true;
+        }
+    }
+
+    public static boolean isMac() {
+        String OS = System.getProperty("os.name").toLowerCase();
+        return OS.indexOf("mac") >= 0;
+    }
 }

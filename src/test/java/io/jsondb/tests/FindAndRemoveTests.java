@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.model.Site;
@@ -53,7 +53,7 @@ public class FindAndRemoveTests {
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
     }
 
