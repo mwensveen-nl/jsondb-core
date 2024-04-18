@@ -167,7 +167,7 @@ public class FileChangeListenerTests {
         sc.close();
 
         content = content + "\n" + "{\"id\":\"07\",\"hostname\":\"ec2-54-191-07\","
-                + "\"privateKey\":\"Zf9vl5K6WV6BA3eL7JbnrfPMjfJxc9Rkoo0zlROQlgTslmcp9iFzos+MP93GZqop\","
+                + "\"privateKey\":\"vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==\","
                 + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}";
 
         PrintWriter out = new PrintWriter(instancesJson);

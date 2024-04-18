@@ -50,7 +50,6 @@ public class TestUtils {
             while (sc.hasNextLine()) {
 
                 String nextLine = sc.nextLine();
-                System.out.println(nextLine);
                 queue.add(nextLine);
             }
         } catch (FileNotFoundException e) {
