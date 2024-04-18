@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.model.Site;
@@ -60,7 +60,7 @@ public class InsertTests {
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
     }
 
@@ -123,7 +123,7 @@ public class InsertTests {
      */
     @Test
     public void testInsert_ASingleCollectionObject() {
-        InvalidJsonDbApiUsageException exception = assertThrows(InvalidJsonDbApiUsageException.class, () -> jsonDBTemplate.insert(new HashSet<String>()));
+        InvalidJsonDbApiUsageException exception = assertThrows(InvalidJsonDbApiUsageException.class, () -> jsonDBTemplate.insert(new HashSet<>()));
         assertEquals("Collection object cannot be inserted, removed, updated or upserted as a single object", exception.getMessage());
     }
 
@@ -187,7 +187,7 @@ public class InsertTests {
         List<Site> sites = jsonDBTemplate.getCollection(Site.class);
         int size = sites.size();
 
-        List<Site> newList = new ArrayList<Site>();
+        List<Site> newList = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Site site = new Site();
             int id = 2 + i;
@@ -217,7 +217,7 @@ public class InsertTests {
      */
     @Test
     public void testInsert_ACollectionOfObjectsWithOneAlreadyPresent() {
-        List<Instance> newList = new ArrayList<Instance>();
+        List<Instance> newList = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Instance c = new Instance();
             int id = 21 + i;
@@ -237,7 +237,7 @@ public class InsertTests {
      */
     @Test
     public void testInsert_DuplicateObjectWithinObjectsBeingInserted() {
-        List<Instance> newList = new ArrayList<Instance>();
+        List<Instance> newList = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             Instance c = new Instance();
             c.setId("28");
@@ -253,7 +253,7 @@ public class InsertTests {
      */
     @Test
     public void testInsert_CollectionOfObjectsWhenDBCollectionDoesNotExist() {
-        List<Volume> newList = new ArrayList<Volume>();
+        List<Volume> newList = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             Volume c = new Volume();
             int id = 0 + i;

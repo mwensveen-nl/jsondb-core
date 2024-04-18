@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.util.TestUtils;
@@ -35,7 +35,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test for the encryption functionality
@@ -58,7 +60,7 @@ public class EncryptionTests {
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
 
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
 
@@ -80,12 +82,10 @@ public class EncryptionTests {
         instance.setPublicKey("d3aa045f71bf4d1dffd2c5f485a4bc1d");
         jsonDBTemplate.insert(instance);
 
-        String[] expectedLastLineAtEnd = {
-                "{\"id\":\"11\",\"hostname\":\"ec2-54-191-11\","
-                        + "\"privateKey\":\"Zf9vl5K6WV6BA3eL7JbnrfPMjfJxc9Rkoo0zlROQlgTslmcp9iFzos+MP93GZqop\","
-                        + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}" };
-
-        TestUtils.checkLastLines(instancesJson, expectedLastLineAtEnd);
+        String lastLine = TestUtils.lastLine(instancesJson);
+        assertTrue(lastLine.startsWith("{\"id\":\"11\",\"hostname\":\"ec2-54-191-11\",\"privateKey\":"));
+        assertTrue(lastLine.endsWith(",\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}"));
+        assertFalse(lastLine.contains("b87eb02f5dd7e5232d7b0fc30a5015e4"));
 
         Instance i = jsonDBTemplate.findById("11", "instances");
         assertEquals("b87eb02f5dd7e5232d7b0fc30a5015e4", i.getPrivateKey());
@@ -95,19 +95,17 @@ public class EncryptionTests {
     public void changeEncryptionTest() {
         ICipher newCipher = null;
         try {
-            newCipher = new DefaultAESCBCCipher("jCt039xT0eUwkIqAWACw/w==");
+            newCipher = new Default1Cipher("jCt039xT0eUwkIqAWACw/w==");
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         }
 
         jsonDBTemplate.changeEncryption(newCipher);
 
-        String[] expectedLastLineAtEnd = {
-                "{\"id\":\"06\",\"hostname\":\"ec2-54-191-06\","
-                        + "\"privateKey\":\"J5CnDOTBe4OwePT43esS7vDb5DVqi+VGtRoICipcTdtyyh5N1gxbUdtvx8N9sCpZ\","
-                        + "\"publicKey\":\"\"}" };
-
-        TestUtils.checkLastLines(instancesJson, expectedLastLineAtEnd);
+        String lastLine = TestUtils.lastLine(instancesJson);
+        assertTrue(lastLine.startsWith("{\"id\":\"06\",\"hostname\":\"ec2-54-191-06\",\"privateKey\":"));
+        assertTrue(lastLine.endsWith(",\"publicKey\":\"\"}"));
+        assertFalse(lastLine.contains("vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ=="));
 
         Instance i = jsonDBTemplate.findById("01", "instances");
         assertEquals("b87eb02f5dd7e5232d7b0fc30a5015e4", i.getPrivateKey());
@@ -115,7 +113,7 @@ public class EncryptionTests {
 
     @Test
     public void changeEncryptionTest2() throws GeneralSecurityException {
-        ICipher newCipher = new DefaultAESCBCCipher("jCt039xT0eUwkIqAWACw/w==");
+        ICipher newCipher = new Default1Cipher("jCt039xT0eUwkIqAWACw/w==");
 
         InvalidJsonDbApiUsageException exception = assertThrows(InvalidJsonDbApiUsageException.class, () -> unencryptedjsonDBTemplate.changeEncryption(newCipher));
         assertEquals("DB is not encrypted, nothing to change for EncryptionKey", exception.getMessage());

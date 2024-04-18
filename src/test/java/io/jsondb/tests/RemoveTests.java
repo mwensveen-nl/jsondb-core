@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.model.Site;
@@ -56,7 +56,7 @@ public class RemoveTests {
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
     }
 
@@ -115,7 +115,7 @@ public class RemoveTests {
     public void testRemoveBatch_FromNonExistingCollection() {
         Site s = new Site();
         s.setId("000012");
-        List<Site> ss = new ArrayList<Site>();
+        List<Site> ss = new ArrayList<>();
         ss.add(s);
 
         InvalidJsonDbApiUsageException exception = assertThrows(InvalidJsonDbApiUsageException.class, () -> jsonDBTemplate.remove(ss, "sites"));
@@ -170,7 +170,7 @@ public class RemoveTests {
         List<Instance> instances = jsonDBTemplate.getCollection(Instance.class);
         int size = instances.size();
 
-        List<Instance> batch = new ArrayList<Instance>();
+        List<Instance> batch = new ArrayList<>();
         for (int i = 1; i < 3; i++) {
             Instance e = new Instance();
             e.setId(String.format("%02d", i));

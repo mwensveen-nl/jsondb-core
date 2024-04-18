@@ -23,7 +23,7 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.events.CollectionFileChangeListener;
 import io.jsondb.tests.model.Instance;
@@ -69,7 +69,7 @@ public class FileChangeListenerTests {
 
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithEnumFieldsJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
 
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
     }
@@ -85,10 +85,12 @@ public class FileChangeListenerTests {
 
             @Override
             public void collectionFileModified(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileDeleted(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
@@ -101,14 +103,17 @@ public class FileChangeListenerTests {
         jsonDBTemplate.addCollectionFileChangeListener(new CollectionFileChangeListener() {
             @Override
             public void collectionFileModified(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileDeleted(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileAdded(String collectionName) {
+                // intentionally left empty
             }
         });
 
@@ -147,10 +152,12 @@ public class FileChangeListenerTests {
 
             @Override
             public void collectionFileDeleted(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileAdded(String collectionName) {
+                // intentionally left empty
             }
         });
 
@@ -160,7 +167,7 @@ public class FileChangeListenerTests {
         sc.close();
 
         content = content + "\n" + "{\"id\":\"07\",\"hostname\":\"ec2-54-191-07\","
-                + "\"privateKey\":\"Zf9vl5K6WV6BA3eL7JbnrfPMjfJxc9Rkoo0zlROQlgTslmcp9iFzos+MP93GZqop\","
+                + "\"privateKey\":\"vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==\","
                 + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}";
 
         PrintWriter out = new PrintWriter(instancesJson);
@@ -185,6 +192,7 @@ public class FileChangeListenerTests {
 
             @Override
             public void collectionFileModified(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
@@ -194,6 +202,8 @@ public class FileChangeListenerTests {
 
             @Override
             public void collectionFileAdded(String collectionName) {
+                // intentionally left empty
+
             }
         });
 
@@ -215,14 +225,17 @@ public class FileChangeListenerTests {
         CollectionFileChangeListener listener = new CollectionFileChangeListener() {
             @Override
             public void collectionFileModified(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileDeleted(String collectionName) {
+                // intentionally left empty
             }
 
             @Override
             public void collectionFileAdded(String collectionName) {
+                // intentionally left empty
             }
         };
 

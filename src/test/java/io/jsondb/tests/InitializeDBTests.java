@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import java.io.File;
@@ -61,7 +61,7 @@ public class InitializeDBTests {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
         try {
-            cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+            cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         } catch (GeneralSecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -93,14 +93,14 @@ public class InitializeDBTests {
         int size = instances.size();
 
         // Add more computers directly to the computers.json file.
-        List<Instance> instances1 = new ArrayList<Instance>();
+        List<Instance> instances1 = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Instance inst = new Instance();
             int id = 11 + i;
             inst.setId(String.format("%02d", id));
             inst.setHostname("ec2-54-191-" + id);
             // Private key is encrypted form of: b87eb02f5dd7e5232d7b0fc30a5015e4
-            inst.setPrivateKey("Zf9vl5K6WV6BA3eL7JbnrfPMjfJxc9Rkoo0zlROQlgTslmcp9iFzos+MP93GZqop");
+            inst.setPrivateKey("vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==");
             inst.setPublicKey("d3aa045f71bf4d1dffd2c5f485a4bc1d");
             instances1.add(inst);
         }

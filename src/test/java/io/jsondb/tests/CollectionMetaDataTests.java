@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.CollectionMetaData;
 import io.jsondb.JsonDBConfig;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.SecureVolume;
 import io.jsondb.tests.model.Volume;
@@ -35,11 +35,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @version 1.0 06-Oct-2016
@@ -54,7 +54,7 @@ public class CollectionMetaDataTests {
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
     }
 
     @AfterEach

@@ -24,7 +24,7 @@ import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import java.io.File;
@@ -61,7 +61,7 @@ public class FindQueryTests {
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
         ICipher cipher = null;
         try {
-            cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+            cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         } catch (GeneralSecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -226,10 +226,10 @@ public class FindQueryTests {
     @Test
     public void testFindQuery_AndSort() {
         String jxQuery = "."; // XPATH for all elements in a collection
-        Comparator<Instance> comparator = new Comparator<Instance>() {
+        Comparator<Instance> comparator = new Comparator<>() {
             @Override
             public int compare(Instance o1, Instance o2) {
-                return (o1.getHostname().compareTo(o2.getHostname()));
+                return o1.getHostname().compareTo(o2.getHostname());
             }
         };
         List<Instance> instances = jsonDBTemplate.find(jxQuery, Instance.class, comparator);
@@ -256,10 +256,10 @@ public class FindQueryTests {
      */
     @Test
     public void testFindAllQuery_AndSort() {
-        Comparator<Instance> comparator = new Comparator<Instance>() {
+        Comparator<Instance> comparator = new Comparator<>() {
             @Override
             public int compare(Instance o1, Instance o2) {
-                return (o1.getHostname().compareTo(o2.getHostname()));
+                return o1.getHostname().compareTo(o2.getHostname());
             }
         };
         List<Instance> instances = jsonDBTemplate.findAll(Instance.class, comparator);
@@ -287,10 +287,10 @@ public class FindQueryTests {
     @Test
     public void testFindQuery_AndSortAndSlice() {
         String jxQuery = "."; // XPATH for all elements in a collection
-        Comparator<Instance> comparator = new Comparator<Instance>() {
+        Comparator<Instance> comparator = new Comparator<>() {
             @Override
             public int compare(Instance o1, Instance o2) {
-                return (o1.getHostname().compareTo(o2.getHostname()));
+                return o1.getHostname().compareTo(o2.getHostname());
             }
         };
         List<Instance> instances = jsonDBTemplate.find(jxQuery, Instance.class, comparator, ":5:2");
@@ -348,10 +348,10 @@ public class FindQueryTests {
      */
     @Test
     public void testFindAllQuery_AndSortAndSlice() {
-        Comparator<Instance> comparator = new Comparator<Instance>() {
+        Comparator<Instance> comparator = new Comparator<>() {
             @Override
             public int compare(Instance o1, Instance o2) {
-                return (o1.getHostname().compareTo(o2.getHostname()));
+                return o1.getHostname().compareTo(o2.getHostname());
             }
         };
         List<Instance> instances = jsonDBTemplate.findAll(Instance.class, comparator, ":5:2");

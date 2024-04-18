@@ -23,7 +23,7 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
 import io.jsondb.Util;
-import io.jsondb.crypto.DefaultAESCBCCipher;
+import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.events.CollectionFileChangeAdapter;
 import io.jsondb.tests.model.Instance;
@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,12 +45,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 /**
  * @version 1.0 24-Oct-2016
  */
-@Disabled
 public class FileChangeAdapterTests {
 
     private static final long DB_RELOAD_TIMEOUT = 5 * 1000;
@@ -67,11 +65,11 @@ public class FileChangeAdapterTests {
         // Filewatcher does not work on Mac and hence JsonDB events will never fire
         // and so the EventTests will never succeed. So we run the tests only if
         // it is not a Mac system
-        assumeTrue(!TestUtils.isMac());
+        assumeFalse(TestUtils.isMac());
 
         dbFilesFolder.mkdir();
         Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithEnumFieldsJson);
-        ICipher cipher = new DefaultAESCBCCipher("1r8+24pibarAWgS85/Heeg==");
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
 
         jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
     }
@@ -110,7 +108,7 @@ public class FileChangeAdapterTests {
         assertTrue(collectionFileAddedFired);
         List<Instance> instances = jsonDBTemplate.findAll(Instance.class);
         assertNotNull(instances);
-        assertNotEquals(instances.size(), 0);
+        assertNotEquals(0, instances.size());
     }
 
     private boolean collectionFileModifiedFired = false;
@@ -141,7 +139,7 @@ public class FileChangeAdapterTests {
         sc.close();
 
         content = content + "\n" + "{\"id\":\"07\",\"hostname\":\"ec2-54-191-07\","
-                + "\"privateKey\":\"Zf9vl5K6WV6BA3eL7JbnrfPMjfJxc9Rkoo0zlROQlgTslmcp9iFzos+MP93GZqop\","
+                + "\"privateKey\":\"vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==\","
                 + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}";
 
         PrintWriter out = new PrintWriter(instancesJson);
