@@ -22,7 +22,6 @@ package io.jsondb.tests;
 
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.events.CollectionFileChangeAdapter;
@@ -35,7 +34,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Scanner;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -74,11 +72,6 @@ public class FileChangeAdapterTests {
 
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
     }
 
     private boolean collectionFileAddedFired = false;

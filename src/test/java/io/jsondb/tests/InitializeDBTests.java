@@ -23,7 +23,6 @@ package io.jsondb.tests;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
@@ -34,9 +33,9 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,18 +47,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @version 1.0 31 Dec 2015
  */
 public class InitializeDBTests {
+    private static final String INSTANCES_JSON = "instances.json";
 
     private ObjectMapper objectMapper = null;
-
-    private String dbFilesLocation = "src/test/resources/dbfiles/initializationTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
+    @TempDir
+    private File dbFilesFolder;
     private ICipher cipher;
 
     @BeforeEach
     public void setup() throws IOException {
         dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         try {
             cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         } catch (GeneralSecurityException e) {
@@ -69,14 +67,9 @@ public class InitializeDBTests {
         objectMapper = new ObjectMapper();
     }
 
-    @AfterEach
-    public void tearDown() {
-        Util.delete(dbFilesFolder);
-    }
-
     @Test
     public void testInitialization() {
-        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model");
+        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model");
 
         Set<String> collectionNames = jsonDBTemplate.getCollectionNames();
         assertTrue(collectionNames.contains("instances"));
@@ -85,7 +78,7 @@ public class InitializeDBTests {
 
     @Test
     public void testReload() {
-        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
 
         Set<String> collectionNames = jsonDBTemplate.getCollectionNames();
         assertTrue(collectionNames.contains("instances"));
@@ -104,7 +97,7 @@ public class InitializeDBTests {
             inst.setPublicKey("d3aa045f71bf4d1dffd2c5f485a4bc1d");
             instances1.add(inst);
         }
-        appendDirectlyToJsonFile(instances1, instancesJson);
+        appendDirectlyToJsonFile(instances1, new File(dbFilesFolder, INSTANCES_JSON));
 
         jsonDBTemplate.reLoadDB();
 
@@ -117,9 +110,8 @@ public class InitializeDBTests {
     private <T> boolean appendDirectlyToJsonFile(List<T> collectionData, File collectionFile) {
 
         boolean retval = false;
-        FileWriter fw = null;
-        try {
-            fw = new FileWriter(collectionFile, true);
+        try (FileWriter fw = new FileWriter(collectionFile, true)) {
+            ;
             for (T row : collectionData) {
                 fw.write(objectMapper.writeValueAsString(row));
                 fw.write("\n");
@@ -128,14 +120,6 @@ public class InitializeDBTests {
         } catch (IOException e) {
             retval = false;
             e.printStackTrace();
-        } finally {
-            if (null != fw) {
-                try {
-                    fw.close();
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
         }
         return retval;
     }

@@ -23,7 +23,6 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.CollectionMetaData;
 import io.jsondb.JsonDBConfig;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.SecureVolume;
@@ -31,7 +30,6 @@ import io.jsondb.tests.model.Volume;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -54,11 +52,6 @@ public class CollectionMetaDataTests {
     public void setUp() throws Exception {
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, "instances.json"));
         cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
     }
 
     @Test

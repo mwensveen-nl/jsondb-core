@@ -23,14 +23,12 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.util.TestUtils;
 import java.io.File;
 import java.security.GeneralSecurityException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -65,12 +63,6 @@ public class EncryptionTests {
         jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
 
         unencryptedjsonDBTemplate = new JsonDBTemplate(dbFilesFolder2.getAbsolutePath(), "io.jsondb.tests.model");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
-        Util.delete(dbFilesFolder2);
     }
 
     @Test

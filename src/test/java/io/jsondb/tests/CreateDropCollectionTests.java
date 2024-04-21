@@ -24,13 +24,11 @@ import com.google.common.io.Files;
 import io.jsondb.DefaultSchemaVersionComparator;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.model.Site;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -56,11 +54,6 @@ public class CreateDropCollectionTests {
     public void setUp() throws Exception {
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", false, new DefaultSchemaVersionComparator());
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
     }
 
     @Test

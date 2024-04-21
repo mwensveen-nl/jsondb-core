@@ -23,14 +23,12 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import io.jsondb.tests.model.Site;
 import java.io.File;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -55,11 +53,6 @@ public class FindAndRemoveTests {
         Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
         jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
     }
 
     /**

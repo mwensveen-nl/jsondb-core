@@ -83,25 +83,13 @@ public class JsonDBConfigTests {
 
     private class MyCipher implements ICipher {
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see io.jsondb.crypto.ICipher#encrypt(java.lang.String)
-         */
         @Override
         public String encrypt(String plainText) {
-            // TODO Auto-generated method stub
             return null;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see io.jsondb.crypto.ICipher#decrypt(java.lang.String)
-         */
         @Override
         public String decrypt(String cipherText) {
-            // TODO Auto-generated method stub
             return null;
         }
 

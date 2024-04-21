@@ -22,14 +22,13 @@ package io.jsondb.tests;
 
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.tests.model.PojoWithEnumFields;
 import io.jsondb.tests.model.PojoWithEnumFields.Status;
 import java.io.File;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,22 +38,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @version 1.0 06-Oct-2016
  */
 public class PojoWithEnumFieldsTest {
-    private String dbFilesLocation = "src/test/resources/dbfiles/pojowithenumfieldsTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File pojoWithEnumFieldsJson = new File(dbFilesFolder, "pojowithenumfields.json");
-
+    private static final String POJOWITHENUMFIELDS_JSON = "pojowithenumfields.json";
+    @TempDir
+    private File dbFilesFolder;
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithEnumFieldsJson);
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), new File(dbFilesFolder, POJOWITHENUMFIELDS_JSON));
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model");
     }
 
     @Test

@@ -23,16 +23,14 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,27 +44,16 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @version 1.0 06-Oct-2016
  */
 public class InitializeDBNegativeTests {
-
-    private String dbFilesLocation = "src/test/resources/dbfiles/dbInitializationTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-
-    @BeforeEach
-    public void setup() throws IOException, GeneralSecurityException {
-        dbFilesFolder.mkdir();
-    }
-
-    @AfterEach
-    public void tearDown() {
-        Util.delete(dbFilesFolder);
-    }
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
 
     /**
      * A test to see if verify if JsonDB will get initialized when emtpy directory is passed.
      */
     @Test
     public void testEmptyDBInitialization() {
-        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model");
+        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model");
 
         Set<String> collectionNames = jsonDBTemplate.getCollectionNames();
         assertEquals(collectionNames.size(), 0);
@@ -77,7 +64,7 @@ public class InitializeDBNegativeTests {
      */
     @Test
     public void testMissingDBLocationInitialization_1() {
-        File someDbFilesFolder = new File(dbFilesLocation, "someMissingFolder");
+        File someDbFilesFolder = new File(dbFilesFolder, "someMissingFolder");
         JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(someDbFilesFolder.toString(), "org.jsondb.testmodel");
 
         assertTrue(someDbFilesFolder.exists());
@@ -92,7 +79,7 @@ public class InitializeDBNegativeTests {
      */
     @Test
     public void testMissingDBLocationInitialization_2() {
-        File someDbFilesFolder = new File(dbFilesLocation, "someMissingFolder2");
+        File someDbFilesFolder = new File(dbFilesFolder, "someMissingFolder2");
         try {
             someDbFilesFolder.createNewFile();
         } catch (IOException e) {
@@ -105,13 +92,13 @@ public class InitializeDBNegativeTests {
 
     @Test
     public void testDBInitializationforMissingFile() throws IOException, GeneralSecurityException {
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
-        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        JsonDBTemplate jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
 
         assertTrue(jsonDBTemplate.collectionExists("instances"));
 
-        instancesJson.delete();
+        new File(dbFilesFolder, INSTANCES_JSON).delete();
         jsonDBTemplate.reloadCollection("instances");
         assertTrue(!jsonDBTemplate.collectionExists("instances"));
     }
