@@ -2,14 +2,13 @@ package io.jsondb.tests;
 
 import com.google.common.io.Files;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.tests.model.PojoWithIgnoredFields;
 import io.jsondb.tests.util.TestUtils;
 import java.io.File;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,22 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Micha Wensveen
  */
 public class PojoWithIgnoredFieldsTest {
-    private String dbFilesLocation = "src/test/resources/dbfiles/pojowithignoredfieldsTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File pojoWithIgnoredFieldsJson = new File(dbFilesFolder, "pojowithignoredfields.json");
-
+    private static final String POJOWITHIGNOREDFIELDS_JSON = "pojowithignoredfields.json";
+    @TempDir
+    private File dbFilesFolder;
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithIgnoredFieldsJson);
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), new File(dbFilesFolder, POJOWITHIGNOREDFIELDS_JSON));
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model");
     }
 
     @Test
@@ -64,6 +56,6 @@ public class PojoWithIgnoredFieldsTest {
         assertNotNull(pojos);
         assertEquals(pojos.size(), size + 1);
         String[] expectedLinesAtEnd = { "{\"id\":\"0010\",\"status\":\"UPDATED\"}" };
-        TestUtils.checkLastLines(pojoWithIgnoredFieldsJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, POJOWITHIGNOREDFIELDS_JSON), expectedLinesAtEnd);
     }
 }

@@ -27,9 +27,9 @@ import io.jsondb.tests.model.PojoForPrivateGetIdTest;
 import io.jsondb.tests.model.PojoForPrivateSetIdTest;
 import java.io.File;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,20 +43,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @version 1.0 27-Oct-2016
  */
 public class UtilTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/utilTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model");
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model");
     }
 
     @Test

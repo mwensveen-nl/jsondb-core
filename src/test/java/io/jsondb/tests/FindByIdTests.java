@@ -23,14 +23,13 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
 import java.io.File;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,23 +40,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @version 1.0 14-Oct-2016
  */
 public class FindByIdTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/findByIdTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
     }
 
     /**
@@ -80,6 +72,7 @@ public class FindByIdTests {
     }
 
     private class NonAnotatedClass {
+        // intentionately empty
     }
 
     /**

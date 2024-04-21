@@ -23,7 +23,6 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.query.ddl.AddOperation;
 import io.jsondb.query.ddl.CollectionSchemaUpdate;
 import io.jsondb.query.ddl.DeleteOperation;
@@ -33,9 +32,9 @@ import io.jsondb.tests.model.LoadBalancer;
 import io.jsondb.tests.util.TestUtils;
 import java.io.File;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,22 +45,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @version 1.0 25-Oct-2016
  */
 public class CollectionSchemaUpdateTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/collectionUpdateTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File loadbalancerJson = new File(dbFilesFolder, "loadbalancer.json");
+    private static final String LOADBALANCER_JSON = "loadbalancer.json";
+
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/loadbalancer.json"), loadbalancerJson);
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", null, true, null);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        Files.copy(new File("src/test/resources/dbfiles/loadbalancer.json"), new File(dbFilesFolder, LOADBALANCER_JSON));
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", null, true, null);
     }
 
     @Test
@@ -91,7 +85,7 @@ public class CollectionSchemaUpdateTests {
                 "{\"id\":\"009\",\"hostname\":\"eclb-54-09\",\"admin\":\"admin\",\"osName\":null}",
                 "{\"id\":\"010\",\"hostname\":\"eclb-54-10\",\"admin\":\"admin\",\"osName\":null}" };
 
-        TestUtils.checkLastLines(loadbalancerJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, LOADBALANCER_JSON), expectedLinesAtEnd);
     }
 
     @Test
@@ -118,7 +112,7 @@ public class CollectionSchemaUpdateTests {
                 "{\"id\":\"009\",\"hostname\":\"eclb-54-09\",\"username\":\"admin\",\"osName\":\"mac\"}",
                 "{\"id\":\"010\",\"hostname\":\"eclb-54-10\",\"username\":\"admin\",\"osName\":\"mac\"}" };
 
-        TestUtils.checkLastLines(loadbalancerJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, LOADBALANCER_JSON), expectedLinesAtEnd);
     }
 
     @Test
@@ -145,7 +139,7 @@ public class CollectionSchemaUpdateTests {
                 "{\"id\":\"009\",\"hostname\":\"eclb-54-09\",\"username\":\"admin\",\"osName\":null}",
                 "{\"id\":\"010\",\"hostname\":\"eclb-54-10\",\"username\":\"admin\",\"osName\":null}" };
 
-        TestUtils.checkLastLines(loadbalancerJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, LOADBALANCER_JSON), expectedLinesAtEnd);
     }
 
     @Test
@@ -172,5 +166,6 @@ public class CollectionSchemaUpdateTests {
         CollectionSchemaUpdate cu = CollectionSchemaUpdate.update("deletedField", delOperation);
 
         InvalidJsonDbApiUsageException exception = assertThrows(InvalidJsonDbApiUsageException.class, () -> jsonDBTemplate.updateCollectionSchema(cu, "sites"));
+        assertEquals("Collection by name 'sites' not found. Create collection first.", exception.getMessage());
     }
 }

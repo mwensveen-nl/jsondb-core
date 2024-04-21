@@ -23,7 +23,6 @@ package io.jsondb.tests;
 import com.google.common.io.Files;
 import io.jsondb.InvalidJsonDbApiUsageException;
 import io.jsondb.JsonDBTemplate;
-import io.jsondb.Util;
 import io.jsondb.crypto.Default1Cipher;
 import io.jsondb.crypto.ICipher;
 import io.jsondb.tests.model.Instance;
@@ -36,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,26 +47,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @version 1.0 08-Oct-2016
  */
 public class UpsertTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/upsertTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-    private File volumesJson = new File(dbFilesFolder, "volumes.json");
-    private File pojoWithListJson = new File(dbFilesFolder, "pojowithlist.json");
-
+    private static final String POJOWITHLIST_JSON = "pojowithlist.json";
+    private static final String VOLUMES_JSON = "volumes.json";
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
     private JsonDBTemplate jsonDBTemplate = null;
     private ICipher cipher;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
         cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
     }
 
     /**
@@ -100,6 +92,7 @@ public class UpsertTests {
     }
 
     private class SomeClass {
+        // intentionately empty
     }
 
     /**
@@ -196,7 +189,7 @@ public class UpsertTests {
 
         String[] expectedLinesAtEnd = { "{\"id\":\"000001\",\"name\":\"c:\",\"size\":102400000000,\"flash\":true}" };
 
-        TestUtils.checkLastLines(volumesJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, VOLUMES_JSON), expectedLinesAtEnd);
     }
 
     /**
@@ -231,7 +224,7 @@ public class UpsertTests {
                 "{\"id\":\"000005\",\"name\":\"c:\",\"size\":30720000,\"flash\":false}",
                 "{\"id\":\"000006\",\"name\":\"c:\",\"size\":40960000,\"flash\":true}" };
 
-        TestUtils.checkLastLines(volumesJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, VOLUMES_JSON), expectedLinesAtEnd);
     }
 
     /**
@@ -327,6 +320,6 @@ public class UpsertTests {
                 "{\"schemaVersion\":\"1.0\"}",
                 "{\"id\":\"000002\",\"stuff\":[\"A\",\"B\"]}" };
 
-        TestUtils.checkLastLines(pojoWithListJson, expectedLinesAtEnd);
+        TestUtils.checkLastLines(new File(dbFilesFolder, POJOWITHLIST_JSON), expectedLinesAtEnd);
     }
 }

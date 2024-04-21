@@ -24,14 +24,13 @@ import com.google.common.io.Files;
 import io.jsondb.CollectionMetaData;
 import io.jsondb.DefaultSchemaVersionComparator;
 import io.jsondb.JsonDBConfig;
-import io.jsondb.Util;
 import io.jsondb.io.JsonWriter;
 import io.jsondb.tests.model.Instance;
 import java.io.File;
 import java.io.IOException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -41,33 +40,26 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @version 1.0 11-Dec-2017
  */
 public class JsonWriterTests {
-
-    private String dbFilesLocation = "src/test/resources/dbfiles/jsonWriterTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
 
     /**
      * @throws java.lang.Exception
      */
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-    }
-
-    @AfterEach
-    public void tearDown() throws Exception {
-        Util.delete(dbFilesFolder);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
     }
 
     @Test
     public void test() throws IOException {
-        JsonDBConfig dbConfig = new JsonDBConfig(dbFilesLocation, "io.jsondb.tests.model", null, false,
+        JsonDBConfig dbConfig = new JsonDBConfig(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", null, false,
                 new DefaultSchemaVersionComparator());
 
         CollectionMetaData cmd = new CollectionMetaData("instances", new Instance().getClass(), "1.0", null);
 
-        JsonWriter jr = new JsonWriter(dbConfig, cmd, "instances", instancesJson);
+        JsonWriter jr = new JsonWriter(dbConfig, cmd, "instances", new File(dbFilesFolder, INSTANCES_JSON));
 
         assertNotNull(jr);
     }
