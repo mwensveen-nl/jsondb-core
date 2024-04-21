@@ -33,6 +33,7 @@ import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,18 +45,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @version 1.0 06-Oct-2016
  */
 public class CreateDropCollectionTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/createDropCollectionTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-    private File sitesJson = new File(dbFilesFolder, "sites.json");
+    private static final String SITES_JSON = "sites.json";
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", false, new DefaultSchemaVersionComparator());
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", false, new DefaultSchemaVersionComparator());
     }
 
     @AfterEach
@@ -71,7 +71,7 @@ public class CreateDropCollectionTests {
         assertEquals(collectionNames.size(), 1);
 
         jsonDBTemplate.createCollection(Site.class);
-        assertTrue(sitesJson.exists());
+        assertTrue(new File(dbFilesFolder, SITES_JSON).exists());
 
         collectionNames = jsonDBTemplate.getCollectionNames();
         assertTrue(collectionNames.contains("instances"));
@@ -82,7 +82,7 @@ public class CreateDropCollectionTests {
         assertEquals(sites.size(), 0);
 
         jsonDBTemplate.dropCollection(Site.class);
-        assertFalse(sitesJson.exists());
+        assertFalse(new File(dbFilesFolder, SITES_JSON).exists());
 
         collectionNames = jsonDBTemplate.getCollectionNames();
         assertTrue(collectionNames.contains("instances"));
@@ -96,7 +96,7 @@ public class CreateDropCollectionTests {
         assertEquals(collectionNames.size(), 1);
 
         jsonDBTemplate.getCollection(Site.class);
-        assertTrue(sitesJson.exists());
+        assertTrue(new File(dbFilesFolder, SITES_JSON).exists());
 
         collectionNames = jsonDBTemplate.getCollectionNames();
         assertTrue(collectionNames.contains("instances"));
@@ -104,7 +104,7 @@ public class CreateDropCollectionTests {
         assertEquals(collectionNames.size(), 2);
 
         jsonDBTemplate.dropCollection(Site.class);
-        assertFalse(sitesJson.exists());
+        assertFalse(new File(dbFilesFolder, SITES_JSON).exists());
     }
 
     @Test
@@ -113,6 +113,7 @@ public class CreateDropCollectionTests {
     }
 
     private class SomeClass {
+        // deliberately empty
     }
 
     @Test

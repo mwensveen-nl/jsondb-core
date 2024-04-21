@@ -32,12 +32,12 @@ import io.jsondb.tests.util.TestUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,18 +45,17 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * @version 1.0 24-Oct-2016
  */
 public class FileChangeListenerTests {
 
+    private static final String POJOWITHENUMFIELDS_JSON = "pojowithenumfields.json";
+    private static final String INSTANCES_JSON = "instances.json";
     private static final long DB_RELOAD_TIMEOUT = 5 * 1000;
-    private String dbFilesLocation = "src/test/resources/dbfiles/changeListenerTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-    private File pojoWithEnumFieldsJson = new File(dbFilesFolder, "pojowithenumfields.json");
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
@@ -65,13 +64,12 @@ public class FileChangeListenerTests {
         // Filewatcher does not work on Mac and hence JsonDB events will never fire
         // and so the EventTests will never succeed. So we run the tests only if
         // it is not a Mac system
-        assumeTrue(!TestUtils.isMac());
+        assertFalse(TestUtils.isMac());
 
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithEnumFieldsJson);
+        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), new File(dbFilesFolder, POJOWITHENUMFIELDS_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
 
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
     }
 
     @AfterEach
@@ -119,25 +117,22 @@ public class FileChangeListenerTests {
 
         assertFalse(jsonDBTemplate.collectionExists(Instance.class));
         try {
-            Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+            Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         } catch (IOException e1) {
             fail("Failed to copy data store files");
         }
-        try {
-            // Give it some time to reload DB
-            Thread.sleep(DB_RELOAD_TIMEOUT);
-        } catch (InterruptedException e) {
-            fail("Failed to wait for db reload");
-        }
+
+        sleep();
+
         List<Instance> instances = jsonDBTemplate.findAll(Instance.class);
         assertNotNull(instances);
         assertNotEquals(instances.size(), 0);
     }
 
     @Test
-    public void testAutoReloadOnCollectionFileModified() throws FileNotFoundException {
+    public void testAutoReloadOnCollectionFileModified() throws IOException {
         try {
-            Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+            Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         } catch (IOException e1) {
             fail("Failed to copy data store files");
         }
@@ -170,16 +165,16 @@ public class FileChangeListenerTests {
                 + "\"privateKey\":\"vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==\","
                 + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}";
 
-        PrintWriter out = new PrintWriter(instancesJson);
-        out.println(content);
-        out.close();
+        Files.write(content.getBytes(), new File(dbFilesFolder, INSTANCES_JSON));
 
-        try {
-            // Give it some time to reload DB
-            Thread.sleep(DB_RELOAD_TIMEOUT);
-        } catch (InterruptedException e) {
-            fail("Failed to wait for db reload");
+        sleep();
+        for (int i = 0; i < 5; i++) {
+            if (jsonDBTemplate.findAll(Instance.class).size() == oldCount + 1) {
+                break;
+            }
+            sleep();
         }
+
         int newCount = jsonDBTemplate.findAll(Instance.class).size();
         assertEquals(oldCount + 1, newCount);
     }
@@ -207,16 +202,20 @@ public class FileChangeListenerTests {
             }
         });
 
-        pojoWithEnumFieldsJson.delete();
+        new File(dbFilesFolder, POJOWITHENUMFIELDS_JSON).delete();
 
+        sleep();
+
+        assertFalse(jsonDBTemplate.collectionExists(PojoWithEnumFields.class));
+    }
+
+    private void sleep() {
         try {
             // Give it some time to reload DB
             Thread.sleep(DB_RELOAD_TIMEOUT);
         } catch (InterruptedException e) {
             fail("Failed to wait for db reload");
         }
-
-        assertFalse(jsonDBTemplate.collectionExists(PojoWithEnumFields.class));
     }
 
     @Test

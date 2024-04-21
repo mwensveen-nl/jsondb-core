@@ -35,6 +35,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,18 +44,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @version 1.0 15-Oct-2016
  */
 public class FindAndModifyTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/findAndModifyTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
         dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
     }
 
     @AfterEach

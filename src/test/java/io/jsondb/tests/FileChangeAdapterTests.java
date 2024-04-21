@@ -32,12 +32,13 @@ import io.jsondb.tests.util.TestUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Scanner;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,11 +53,11 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
  */
 public class FileChangeAdapterTests {
 
+    private static final String POJOWITHENUMFIELDS_JSON = "pojowithenumfields.json";
+    private static final String INSTANCES_JSON = "instances.json";
     private static final long DB_RELOAD_TIMEOUT = 5 * 1000;
-    private String dbFilesLocation = "src/test/resources/dbfiles/changeAdapterTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
-    private File pojoWithEnumFieldsJson = new File(dbFilesFolder, "pojowithenumfields.json");
+    @TempDir
+    private File dbFilesFolder;
 
     private JsonDBTemplate jsonDBTemplate = null;
 
@@ -67,11 +68,12 @@ public class FileChangeAdapterTests {
         // it is not a Mac system
         assumeFalse(TestUtils.isMac());
 
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), pojoWithEnumFieldsJson);
-        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
 
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        Files.copy(new File("src/test/resources/dbfiles/pojowithenumfields.json"), new File(dbFilesFolder, POJOWITHENUMFIELDS_JSON));
+
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
     }
 
     @AfterEach
@@ -82,31 +84,37 @@ public class FileChangeAdapterTests {
     private boolean collectionFileAddedFired = false;
 
     private class FileAddedChangeAdapter extends CollectionFileChangeAdapter {
+        private JsonDBTemplate myJonDBTemplate;
+
+        public FileAddedChangeAdapter(JsonDBTemplate newJsonDBTemplate) {
+            this.myJonDBTemplate = newJsonDBTemplate;
+        }
+
         @Override
         public void collectionFileAdded(String collectionName) {
             super.collectionFileAdded(collectionName);
-            jsonDBTemplate.reloadCollection(collectionName);
+            myJonDBTemplate.reloadCollection(collectionName);
             collectionFileAddedFired = true;
         }
     }
 
     @Test
-    public void testAutoReloadOnCollectionFileAdded() {
-        jsonDBTemplate.addCollectionFileChangeListener(new FileAddedChangeAdapter());
-        assertFalse(jsonDBTemplate.collectionExists(Instance.class));
-        try {
-            Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        } catch (IOException e1) {
-            fail("Failed to copy data store files");
-        }
-        try {
-            // Give it some time to reload DB
-            Thread.sleep(DB_RELOAD_TIMEOUT);
-        } catch (InterruptedException e) {
-            fail("Failed to wait for db reload");
-        }
+    public void testAutoReloadOnCollectionFileAdded() throws GeneralSecurityException, IOException {
+        boolean deleted = new File(dbFilesFolder, INSTANCES_JSON).delete();
+        assertTrue(deleted);
+
+        ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
+        JsonDBTemplate newJsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
+
+        newJsonDBTemplate.addCollectionFileChangeListener(new FileAddedChangeAdapter(newJsonDBTemplate));
+        assertFalse(newJsonDBTemplate.collectionExists(Instance.class));
+
+        File instancesJson = new File(dbFilesFolder, INSTANCES_JSON);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        sleep();
+
         assertTrue(collectionFileAddedFired);
-        List<Instance> instances = jsonDBTemplate.findAll(Instance.class);
+        List<Instance> instances = newJsonDBTemplate.findAll(Instance.class);
         assertNotNull(instances);
         assertNotEquals(0, instances.size());
     }
@@ -123,38 +131,43 @@ public class FileChangeAdapterTests {
     }
 
     @Test
-    public void testAutoReloadOnCollectionFileModified() throws FileNotFoundException {
-        try {
-            Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
-        } catch (IOException e1) {
-            fail("Failed to copy data store files");
-        }
-        jsonDBTemplate.reLoadDB();
+    public void testAutoReloadOnCollectionFileModified() throws IOException {
         int oldCount = jsonDBTemplate.findAll(Instance.class).size();
         jsonDBTemplate.addCollectionFileChangeListener(new FileModifiedChangeAdapter());
+        assertFalse(collectionFileModifiedFired);
 
         @SuppressWarnings("resource")
         Scanner sc = new Scanner(new File("src/test/resources/dbfiles/instances.json")).useDelimiter("\\Z");
         String content = sc.next();
         sc.close();
-
+        assertEquals(1131, content.length());
         content = content + "\n" + "{\"id\":\"07\",\"hostname\":\"ec2-54-191-07\","
                 + "\"privateKey\":\"vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ==\","
                 + "\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}";
 
-        PrintWriter out = new PrintWriter(instancesJson);
-        out.println(content);
-        out.close();
+        Files.write(content.getBytes(), new File(dbFilesFolder, INSTANCES_JSON));
+        sleep();
+        assertTrue(collectionFileModifiedFired);
 
+        for (int i = 0; i < 5; i++) {
+            int tempCount = jsonDBTemplate.findAll(Instance.class).size();
+            if (tempCount == oldCount + 1) {
+                break;
+            }
+            sleep();
+        }
+
+        int newCount = jsonDBTemplate.findAll(Instance.class).size();
+        assertEquals(oldCount + 1, newCount);
+    }
+
+    private void sleep() {
         try {
             // Give it some time to reload DB
             Thread.sleep(DB_RELOAD_TIMEOUT);
         } catch (InterruptedException e) {
             fail("Failed to wait for db reload");
         }
-        assertTrue(collectionFileModifiedFired);
-        int newCount = jsonDBTemplate.findAll(Instance.class).size();
-        assertEquals(oldCount + 1, newCount);
     }
 
     private boolean collectionFileDeletedFired = false;
@@ -174,20 +187,16 @@ public class FileChangeAdapterTests {
 
         jsonDBTemplate.addCollectionFileChangeListener(new FileDeletedChangeAdapter());
 
-        pojoWithEnumFieldsJson.delete();
+        new File(dbFilesFolder, POJOWITHENUMFIELDS_JSON).delete();
 
-        try {
-            // Give it some time to reload DB
-            Thread.sleep(DB_RELOAD_TIMEOUT);
-        } catch (InterruptedException e) {
-            fail("Failed to wait for db reload");
-        }
+        sleep();
 
         assertTrue(collectionFileDeletedFired);
         assertFalse(jsonDBTemplate.collectionExists(PojoWithEnumFields.class));
     }
 
     private class DoNothingChangeAdapter extends CollectionFileChangeAdapter {
+        // nothing to do
     }
 
     @Test

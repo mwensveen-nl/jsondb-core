@@ -33,6 +33,7 @@ import java.security.GeneralSecurityException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,25 +47,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @SuppressWarnings("deprecation")
 public class EncryptionTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/encryptionTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
+    private static final String INSTANCES_JSON = "instances.json";
+    @TempDir
+    private File dbFilesFolder;
 
-    private String dbFilesLocation2 = "src/test/resources/dbfiles/encryptionTests2";
-    private File dbFilesFolder2 = new File(dbFilesLocation2);
+    @TempDir
+    private File dbFilesFolder2;
 
     private JsonDBTemplate jsonDBTemplate = null;
     private JsonDBTemplate unencryptedjsonDBTemplate = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, INSTANCES_JSON));
         ICipher cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
 
-        jsonDBTemplate = new JsonDBTemplate(dbFilesLocation, "io.jsondb.tests.model", cipher);
+        jsonDBTemplate = new JsonDBTemplate(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher);
 
-        unencryptedjsonDBTemplate = new JsonDBTemplate(dbFilesLocation2, "io.jsondb.tests.model");
+        unencryptedjsonDBTemplate = new JsonDBTemplate(dbFilesFolder2.getAbsolutePath(), "io.jsondb.tests.model");
     }
 
     @AfterEach
@@ -82,7 +82,7 @@ public class EncryptionTests {
         instance.setPublicKey("d3aa045f71bf4d1dffd2c5f485a4bc1d");
         jsonDBTemplate.insert(instance);
 
-        String lastLine = TestUtils.lastLine(instancesJson);
+        String lastLine = TestUtils.lastLine(new File(dbFilesFolder, INSTANCES_JSON));
         assertTrue(lastLine.startsWith("{\"id\":\"11\",\"hostname\":\"ec2-54-191-11\",\"privateKey\":"));
         assertTrue(lastLine.endsWith(",\"publicKey\":\"d3aa045f71bf4d1dffd2c5f485a4bc1d\"}"));
         assertFalse(lastLine.contains("b87eb02f5dd7e5232d7b0fc30a5015e4"));
@@ -102,7 +102,7 @@ public class EncryptionTests {
 
         jsonDBTemplate.changeEncryption(newCipher);
 
-        String lastLine = TestUtils.lastLine(instancesJson);
+        String lastLine = TestUtils.lastLine(new File(dbFilesFolder, INSTANCES_JSON));
         assertTrue(lastLine.startsWith("{\"id\":\"06\",\"hostname\":\"ec2-54-191-06\",\"privateKey\":"));
         assertTrue(lastLine.endsWith(",\"publicKey\":\"\"}"));
         assertFalse(lastLine.contains("vr90J53rB/gXDb7XfALayqYXcVxHUT4eU+HqsTcpCI2rEmeeqwsHXEnpZxF4rzRCfDZs7NzSODRkPGgOHWmslQ=="));

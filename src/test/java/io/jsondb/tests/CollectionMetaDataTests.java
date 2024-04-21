@@ -34,6 +34,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,15 +46,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @version 1.0 06-Oct-2016
  */
 public class CollectionMetaDataTests {
-    private String dbFilesLocation = "src/test/resources/dbfiles/collectionMetadataTests";
-    private File dbFilesFolder = new File(dbFilesLocation);
-    private File instancesJson = new File(dbFilesFolder, "instances.json");
+    @TempDir
+    private File dbFilesFolder;
     ICipher cipher = null;
 
     @BeforeEach
     public void setUp() throws Exception {
-        dbFilesFolder.mkdir();
-        Files.copy(new File("src/test/resources/dbfiles/instances.json"), instancesJson);
+        Files.copy(new File("src/test/resources/dbfiles/instances.json"), new File(dbFilesFolder, "instances.json"));
         cipher = new Default1Cipher("1r8+24pibarAWgS85/Heeg==");
     }
 
@@ -108,7 +107,7 @@ public class CollectionMetaDataTests {
 
     @Test
     public void test_MetadataLoad_UsingBuilder() {
-        JsonDBConfig dbConfig = new JsonDBConfig(dbFilesLocation, "io.jsondb.tests.model", cipher, false, null);
+        JsonDBConfig dbConfig = new JsonDBConfig(dbFilesFolder.getAbsolutePath(), "io.jsondb.tests.model", cipher, false, null);
         Map<String, CollectionMetaData> cmdMap = CollectionMetaData.builder(dbConfig);
         CollectionMetaData cmd = cmdMap.get("instances");
         assertNotNull(cmd);
