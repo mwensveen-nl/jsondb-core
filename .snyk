@@ -1,0 +1,6 @@
+# Snyk (https://snyk.io) policy file
+# see https://docs.snyk.io/scan-using-snyk/import-project-repository/exclude-directories-and-files-from-project-import
+---
+exclude:
+    global:
+        - src/test

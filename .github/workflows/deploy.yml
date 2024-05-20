@@ -1,11 +1,6 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Deploy new version
 
 on:
@@ -26,18 +21,37 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
-    - name: Setup settings.xml 
-      uses: s4u/maven-settings-action@v3.0.0
-      with:
-        githubServer: false
-        servers: |
-           [{
-              "id": "github",
-              "username": "${{ github.actor }}",
-              "password": "${{ secrets.MAVEN_REPO_WRITE }}"
-           }]
-    - name: echo settings
-      run:  cat /home/runner/.m2/settings.xml
+#    - name: Setup settings.xml 
+#      uses: s4u/maven-settings-action@v3.0.0
+#      with:
+#        githubServer: false
+#        servers: |
+#           [{
+#              "id": "github",
+#              "username": "${{ github.actor }}",
+#              "password": "${{ secrets.MAVEN_REPO_WRITE }}"
+#           }]
+#    - name: echo settings
+#      run:  cat /home/runner/.m2/settings.xml
+    - name: mvn build
+      run: mvn clean verify
     - name: Deploy and Tag
-      run: bash scripts/deploy.sh ${{github.run_number}}
+      env: 
+        GITHUB_TOKEN: ${{ secrets.MAVEN_REPO_WRITE}} # GITHUB_TOKEN is the default env for the password of the github server in settings.xml
+      run: |
+        #set version in pom.xml
+        version=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --quiet | sed 's/\.[^.]*$//')
+        date=$(date '+%Y%m%d')
+        buildnr=${{github.run_number}}
+        newversion="$version.$date$buildnr"
+        echo "Setting version to $newversion"
+        mvn versions:set -DnewVersion="$newversion"
+        #deploy to a maven repo.
+        mvn deploy
+        #set git tag
+        remote=$(git remote)
+        git tag "$newversion"
+        git push "$remote" "$newversion"
+        #reset version in pom.xml
+        mvn versions:revert
 

@@ -1,7 +1,7 @@
 # This workflow will build the branch with Maven.
 # Only if it is NOT main
 
-name: Java CI with Maven
+name: Java build with Maven
 
 on:
   push:
