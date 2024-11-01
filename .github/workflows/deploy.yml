@@ -34,7 +34,7 @@ jobs:
 #    - name: echo settings
 #      run:  cat /home/runner/.m2/settings.xml
     - name: mvn build
-      run: mvn clean verify
+      run: mvn -B-q clean verify
     - name: Deploy and Tag
       env: 
         GITHUB_TOKEN: ${{ secrets.MAVEN_REPO_WRITE}} # GITHUB_TOKEN is the default env for the password of the github server in settings.xml
