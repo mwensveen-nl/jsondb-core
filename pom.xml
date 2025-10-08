@@ -22,7 +22,8 @@
 
 	    <commons-jxpath.version>1.4.0</commons-jxpath.version>
 		<guava.version>33.4.8-jre</guava.version>
-		<jackson.version>2.20</jackson.version>
+		<jackson.version>2.20.0</jackson.version>
+		<jackson-annotations.version>2.20</jackson-annotations.version>
 		<javassist.version>3.30.2-GA</javassist.version>
 		<org-reflections.version>0.10.2</org-reflections.version>
 		<slf4j-api.version>2.0.17</slf4j-api.version>
@@ -47,7 +48,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
-			<version>${jackson.version}</version>
+			<version>${jackson-annotations.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
