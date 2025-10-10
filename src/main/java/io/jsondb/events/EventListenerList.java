@@ -20,6 +20,10 @@
  */
 package io.jsondb.events;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.jsondb.CollectionMetaData;
+import io.jsondb.JsonDBConfig;
+import io.jsondb.JsonDBException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -32,138 +36,131 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
-import io.jsondb.CollectionMetaData;
-import io.jsondb.JsonDBConfig;
-import io.jsondb.JsonDBException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A class that holds a list of CollectionFileChangeListeners.
+ * 
  * @version 1.0 15-Oct-2016
  */
+@Slf4j
 public class EventListenerList {
-  private Logger logger = LoggerFactory.getLogger(EventListenerList.class);
 
-  private JsonDBConfig dbConfig = null;
-  private Map<String, CollectionMetaData> cmdMap;
+    private JsonDBConfig dbConfig = null;
+    private Map<String, CollectionMetaData> cmdMap;
 
-  private List<CollectionFileChangeListener> listeners;
-  private ExecutorService collectionFilesWatcherExecutor;
-  private WatchService watcher = null;
-  private boolean stopWatcher;
+    private List<CollectionFileChangeListener> listeners;
+    private ExecutorService collectionFilesWatcherExecutor;
+    private WatchService watcher = null;
+    private boolean stopWatcher;
 
-  public EventListenerList(JsonDBConfig dbConfig, Map<String, CollectionMetaData> cmdMap) {
-    this.dbConfig = dbConfig;
-    this.cmdMap = cmdMap;
-  }
-
-  public void addCollectionFileChangeListener(CollectionFileChangeListener listener) {
-    if (null == listeners) {
-      listeners = new ArrayList<CollectionFileChangeListener>();
-
-      listeners.add(listener);
-
-      collectionFilesWatcherExecutor = Executors.newSingleThreadExecutor(
-          new ThreadFactoryBuilder().setNameFormat("jsondb-files-watcher-thread-%d").build());
-
-      try {
-        watcher = dbConfig.getDbFilesPath().getFileSystem().newWatchService();
-        dbConfig.getDbFilesPath().register(watcher, StandardWatchEventKinds.ENTRY_CREATE,
-                                                    StandardWatchEventKinds.ENTRY_DELETE,
-                                                    StandardWatchEventKinds.ENTRY_MODIFY);
-      } catch (IOException e) {
-        logger.error("Failed to create the WatchService for the dbFiles location", e);
-        throw new JsonDBException("Failed to create the WatchService for the dbFiles location", e);
-      }
-
-      collectionFilesWatcherExecutor.execute(new CollectionFilesWatcherRunnable());
-    } else {
-      listeners.add(listener);
+    public EventListenerList(JsonDBConfig dbConfig, Map<String, CollectionMetaData> cmdMap) {
+        this.dbConfig = dbConfig;
+        this.cmdMap = cmdMap;
     }
-  }
 
-  public void removeCollectionFileChangeListener(CollectionFileChangeListener listener) {
-    if (null != listeners) {
-      listeners.remove(listener);
-    }
-    if (listeners.size() < 1) {
-      stopWatcher = true;
-      collectionFilesWatcherExecutor.shutdownNow();
-      try {
-        watcher.close();
-      } catch (IOException e) {
-        logger.error("Failed to close the WatchService for the dbFiles location", e);
-      }
-    }
-  }
+    public void addCollectionFileChangeListener(CollectionFileChangeListener listener) {
+        if (null == listeners) {
+            listeners = new ArrayList<>();
 
-  public boolean hasCollectionFileChangeListener() {
-    if ((null != listeners) && (listeners.size() > 0)) {
-      return true;
-    }
-    return false;
-  }
+            listeners.add(listener);
 
-  public void shutdown() {
-    if (null != listeners && listeners.size() > 0) {
-      stopWatcher = true;
-      collectionFilesWatcherExecutor.shutdownNow();
-      try {
-        watcher.close();
-      } catch (IOException e) {
-        logger.error("Failed to close the WatchService for the dbFiles location", e);
-      }
-      listeners.clear();
-    }
-  }
+            collectionFilesWatcherExecutor = Executors.newSingleThreadExecutor(
+                    new ThreadFactoryBuilder().setNameFormat("jsondb-files-watcher-thread-%d").build());
 
-  private class CollectionFilesWatcherRunnable implements Runnable {
-    @Override
-    public void run() {
-      while (!stopWatcher) {
-        WatchKey watckKey = null;
-        try {
-          watckKey = watcher.take();
-        } catch (InterruptedException e) {
-          logger.debug("The watcher service thread was interrupted", e);
-          return;
-        }
-        List<WatchEvent<?>> events = watckKey.pollEvents();
-        for (WatchEvent<?> event : events) {
-          WatchEvent.Kind<?> kind = event.kind();
-          if (kind == StandardWatchEventKinds.OVERFLOW) {
-            continue;
-          }
-          @SuppressWarnings("unchecked")
-          WatchEvent<Path> ev = (WatchEvent<Path>)event;
-          File file = ev.context().toFile();
-          String fileName = file.getName();
-          int extnLocation = fileName.lastIndexOf('.');
-          if(extnLocation != -1) {
-            String collectionName = fileName.substring(0, extnLocation);
-            if (fileName.endsWith(".json") && (cmdMap.containsKey(collectionName))) {
-              if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                for (CollectionFileChangeListener listener : listeners) {
-                  listener.collectionFileAdded(collectionName);
-                }
-              } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                for (CollectionFileChangeListener listener : listeners) {
-                  listener.collectionFileDeleted(collectionName);
-                }
-              } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                for (CollectionFileChangeListener listener : listeners) {
-                  listener.collectionFileModified(collectionName);
-                }
-              }
+            try {
+                watcher = dbConfig.getDbFilesPath().getFileSystem().newWatchService();
+                dbConfig.getDbFilesPath().register(watcher, StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_DELETE,
+                        StandardWatchEventKinds.ENTRY_MODIFY);
+            } catch (IOException e) {
+                log.error("Failed to create the WatchService for the dbFiles location", e);
+                throw new JsonDBException("Failed to create the WatchService for the dbFiles location", e);
             }
-          }
+
+            collectionFilesWatcherExecutor.execute(new CollectionFilesWatcherRunnable());
+        } else {
+            listeners.add(listener);
         }
-      }
     }
-  }
+
+    public void removeCollectionFileChangeListener(CollectionFileChangeListener listener) {
+        if (null != listeners) {
+            listeners.remove(listener);
+        }
+        if (listeners.size() < 1) {
+            stopWatcher = true;
+            collectionFilesWatcherExecutor.shutdownNow();
+            try {
+                watcher.close();
+            } catch (IOException e) {
+                log.error("Failed to close the WatchService for the dbFiles location", e);
+            }
+        }
+    }
+
+    public boolean hasCollectionFileChangeListener() {
+        if (null != listeners && listeners.size() > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    public void shutdown() {
+        if (null != listeners && listeners.size() > 0) {
+            stopWatcher = true;
+            collectionFilesWatcherExecutor.shutdownNow();
+            try {
+                watcher.close();
+            } catch (IOException e) {
+                log.error("Failed to close the WatchService for the dbFiles location", e);
+            }
+            listeners.clear();
+        }
+    }
+
+    private class CollectionFilesWatcherRunnable implements Runnable {
+        @Override
+        public void run() {
+            while (!stopWatcher) {
+                WatchKey watckKey = null;
+                try {
+                    watckKey = watcher.take();
+                } catch (InterruptedException e) {
+                    log.debug("The watcher service thread was interrupted", e);
+                    return;
+                }
+                List<WatchEvent<?>> events = watckKey.pollEvents();
+                for (WatchEvent<?> event : events) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    if (kind == StandardWatchEventKinds.OVERFLOW) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                    File file = ev.context().toFile();
+                    String fileName = file.getName();
+                    int extnLocation = fileName.lastIndexOf('.');
+                    if (extnLocation != -1) {
+                        String collectionName = fileName.substring(0, extnLocation);
+                        if (fileName.endsWith(".json") && cmdMap.containsKey(collectionName)) {
+                            if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                for (CollectionFileChangeListener listener : listeners) {
+                                    listener.collectionFileAdded(collectionName);
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                for (CollectionFileChangeListener listener : listeners) {
+                                    listener.collectionFileDeleted(collectionName);
+                                }
+                            } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                for (CollectionFileChangeListener listener : listeners) {
+                                    listener.collectionFileModified(collectionName);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -21,7 +21,6 @@
 package io.jsondb.query.ddl;
 
 import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
-import lombok.Getter;
 
 /**
  * Represents a CollectionUpdate RENAME operation type.
@@ -32,12 +31,14 @@ import lombok.Getter;
  * @version 1.0 21 Aug 2016
  */
 public class RenameOperation extends AbstractOperation {
-    @Getter
-    private String newName;
+  private String newName;
 
-    public RenameOperation(String newName) {
-        this.operationType = Type.RENAME;
-        this.newName = newName;
-    }
+  public RenameOperation(String newName) {
+    this.operationType = Type.RENAME;
+    this.newName = newName;
+  }
 
+  public String getNewName() {
+    return newName;
+  }
 }

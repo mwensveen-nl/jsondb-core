@@ -54,16 +54,17 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.jxpath.FunctionLibrary;
 import org.apache.commons.jxpath.JXPathContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @version 1.0 25-Sep-2016
  */
-@Slf4j
 public class JsonDBTemplate implements JsonDBOperations {
+    private Logger logger = LoggerFactory.getLogger(JsonDBTemplate.class);
 
     private JsonDBConfig dbConfig = null;
     private final boolean encrypted;
@@ -90,10 +91,10 @@ public class JsonDBTemplate implements JsonDBOperations {
     public JsonDBTemplate(String dbFilesLocationString, String baseScanPackage, ICipher cipher, boolean compatibilityMode, Comparator<String> schemaComparator) {
         dbConfig = new JsonDBConfig(dbFilesLocationString, baseScanPackage, cipher, compatibilityMode, schemaComparator);
         if (null == cipher) {
-            log.info("Encryption is not enabled for JSON DB");
+            logger.info("Encryption is not enabled for JSON DB");
             this.encrypted = false;
         } else {
-            log.info("Encryption is enabled for JSON DB");
+            logger.info("Encryption is enabled for JSON DB");
             this.encrypted = true;
         }
         initialize();
@@ -109,7 +110,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 Files.createDirectory(dbConfig.getDbFilesPath());
             } catch (IOException e) {
-                log.error("DbFiles directory does not exist. Failed to create a new empty DBFiles directory {}", e);
+                logger.error("DbFiles directory does not exist. Failed to create a new empty DBFiles directory {}", e);
                 throw new InvalidJsonDbApiUsageException("DbFiles directory does not exist. Failed to create a new empty DBFiles directory " + dbConfig.getDbFilesLocationString());
             }
         } else if (dbConfig.getDbFilesLocation().isFile()) {
@@ -215,27 +216,27 @@ public class JsonDBTemplate implements JsonDBOperations {
                 lineNo++;
             }
         } catch (JsonParseException je) {
-            log.error("Failed Json Parsing for file {} line {}", collectionFile.getName(), lineNo, je);
+            logger.error("Failed Json Parsing for file {} line {}", collectionFile.getName(), lineNo, je);
             return null;
         } catch (JsonMappingException jm) {
-            log.error("Failed Mapping Parsed Json to Entity {} for file {} line {}",
+            logger.error("Failed Mapping Parsed Json to Entity {} for file {} line {}",
                     entity.getSimpleName(), collectionFile.getName(), lineNo, jm);
             return null;
         } catch (CharacterCodingException ce) {
-            log.error("Unsupported Character Encoding in file {} expected Encoding {}",
+            logger.error("Unsupported Character Encoding in file {} expected Encoding {}",
                     collectionFile.getName(), dbConfig.getCharset().displayName(), ce);
             return null;
         } catch (JsonFileLockException jfe) {
-            log.error("Failed to acquire lock for collection file {}", collectionFile.getName(), jfe);
+            logger.error("Failed to acquire lock for collection file {}", collectionFile.getName(), jfe);
             return null;
         } catch (FileNotFoundException fe) {
-            log.error("Collection file {} not found", collectionFile.getName(), fe);
+            logger.error("Collection file {} not found", collectionFile.getName(), fe);
             return null;
         } catch (IOException e) {
-            log.error("Some IO Exception reading the Json File {}", collectionFile.getName(), e);
+            logger.error("Some IO Exception reading the Json File {}", collectionFile.getName(), e);
             return null;
         } catch (Throwable t) {
-            log.error("Throwable Caught {}, {} ", collectionFile.getName(), t);
+            logger.error("Throwable Caught {}, {} ", collectionFile.getName(), t);
             return null;
         } finally {
             if (null != jr) {
@@ -316,7 +317,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 fileObject.createNewFile();
             } catch (IOException e) {
-                log.error("IO Exception creating the collection file {}", collectionFileName, e);
+                logger.error("IO Exception creating the collection file {}", collectionFileName, e);
                 throw new InvalidJsonDbApiUsageException("Unable to create a collection file for collection: " + collectionName);
             }
 
@@ -372,7 +373,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 Files.deleteIfExists(toDelete.toPath());
             } catch (IOException e) {
-                log.error("IO Exception deleting the collection file {}", toDelete.getName(), e);
+                logger.error("IO Exception deleting the collection file {}", toDelete.getName(), e);
                 throw new InvalidJsonDbApiUsageException("Unable to create a collection file for collection: " + collectionName);
             }
             // cmdMap.remove(collectionName); //Do not remove it from the CollectionMetaData Map.
@@ -426,7 +427,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                     try {
                         jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                     } catch (IOException ioe) {
-                        log.error("Failed to obtain writer for " + collectionName, ioe);
+                        logger.error("Failed to obtain writer for " + collectionName, ioe);
                         throw new JsonDBException("Failed to save " + collectionName, ioe);
                     }
                     jw.renameKeyInJsonFile(collection.values(), true, oldKey, newKey);
@@ -460,7 +461,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 try {
                     jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                 } catch (IOException ioe) {
-                    log.error("Failed to obtain writer for " + collectionName, ioe);
+                    logger.error("Failed to obtain writer for " + collectionName, ioe);
                     throw new JsonDBException("Failed to save " + collectionName, ioe);
                 }
                 jw.reWriteJsonFile(collection.values(), true);
@@ -479,7 +480,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 try {
                     jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                 } catch (IOException ioe) {
-                    log.error("Failed to obtain writer for " + collectionName, ioe);
+                    logger.error("Failed to obtain writer for " + collectionName, ioe);
                     throw new JsonDBException("Failed to save " + collectionName, ioe);
                 }
                 jw.reWriteJsonFile(collection.values(), true);
@@ -537,7 +538,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 newCollection.add((T) obj);
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         }
         return newCollection;
@@ -695,7 +696,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return newCollection;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().readLock().unlock();
@@ -803,7 +804,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return newCollection;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().readLock().unlock();
@@ -841,7 +842,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return (T) obj;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().readLock().unlock();
@@ -884,7 +885,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return null;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             collectionMeta.getCollectionLock().readLock().unlock();
@@ -939,7 +940,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
 
@@ -949,7 +950,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 collection.put(Util.deepCopy(id), (T) objToSave);
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().writeLock().unlock();
@@ -1008,7 +1009,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             boolean appendResult = jw.appendToJsonFile(collection.values(), newCollection.values());
@@ -1017,7 +1018,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 collection.putAll(newCollection);
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             collectionMeta.getCollectionLock().writeLock().unlock();
@@ -1071,7 +1072,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             @SuppressWarnings("unchecked")
@@ -1082,7 +1083,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 collection.put(id, newObject);
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             collectionMeta.getCollectionLock().writeLock().unlock();
@@ -1140,7 +1141,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             boolean substractResult = jw.removeFromJsonFile(collection, id);
@@ -1202,7 +1203,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             boolean substractResult = jw.removeFromJsonFile(collection, removeIds);
@@ -1272,7 +1273,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
 
@@ -1289,7 +1290,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 }
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             collectionMeta.getCollectionLock().writeLock().unlock();
@@ -1356,7 +1357,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
 
@@ -1374,7 +1375,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 }
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             collectionMeta.getCollectionLock().writeLock().unlock();
@@ -1427,7 +1428,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 try {
                     jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                 } catch (IOException ioe) {
-                    log.error("Failed to obtain writer for " + collectionName, ioe);
+                    logger.error("Failed to obtain writer for " + collectionName, ioe);
                     throw new JsonDBException("Failed to save " + collectionName, ioe);
                 }
                 boolean substractResult = jw.removeFromJsonFile(collection, idToRemove);
@@ -1436,7 +1437,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                     // Don't need to clone it, this object no more exists in the collection
                     return objectRemoved;
                 } else {
-                    log.error("Unexpected, Failed to substract the object");
+                    logger.error("Unexpected, Failed to substract the object");
                 }
             }
             return null; // Either the jxQuery found nothing or actual FileIO failed to substract it.
@@ -1488,7 +1489,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             boolean substractResult = jw.removeFromJsonFile(collection, removeIds);
@@ -1553,7 +1554,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                     try {
                         BeanUtils.copyProperty(clonedModifiedObject, entry.getKey(), newValue);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        log.error("Failed to copy updated data into existing collection document using BeanUtils", e);
+                        logger.error("Failed to copy updated data into existing collection document using BeanUtils", e);
                         return null;
                     }
                 }
@@ -1563,7 +1564,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                 try {
                     jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                 } catch (IOException ioe) {
-                    log.error("Failed to obtain writer for " + collectionName, ioe);
+                    logger.error("Failed to obtain writer for " + collectionName, ioe);
                     throw new JsonDBException("Failed to save " + collectionName, ioe);
                 }
                 boolean updateResult = jw.updateInJsonFile(collection, idToModify, clonedModifiedObject);
@@ -1579,7 +1580,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return null;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().writeLock().unlock();
@@ -1627,7 +1628,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                     try {
                         BeanUtils.copyProperty(clonedModifiedObject, entry.getKey(), newValue);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        log.error("Failed to copy updated data into existing collection document using BeanUtils", e);
+                        logger.error("Failed to copy updated data into existing collection document using BeanUtils", e);
                         return null;
                     }
                 }
@@ -1639,7 +1640,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             try {
                 jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
             } catch (IOException ioe) {
-                log.error("Failed to obtain writer for " + collectionName, ioe);
+                logger.error("Failed to obtain writer for " + collectionName, ioe);
                 throw new JsonDBException("Failed to save " + collectionName, ioe);
             }
             boolean updateResult = jw.updateInJsonFile(collection, clonedModifiedObjects);
@@ -1659,7 +1660,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             return null;
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when decrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             cmd.getCollectionLock().writeLock().unlock();
@@ -1704,7 +1705,7 @@ public class JsonDBTemplate implements JsonDBOperations {
                     try {
                         jw = new JsonWriter(dbConfig, cmd, collectionName, fileObjectsRef.get().get(collectionName));
                     } catch (IOException ioe) {
-                        log.error("Failed to obtain writer for " + collectionName, ioe);
+                        logger.error("Failed to obtain writer for " + collectionName, ioe);
                         throw new JsonDBException("Failed to save " + collectionName, ioe);
                     }
                     boolean updateResult = jw.updateInJsonFile(collection, reCryptedObjects);
@@ -1716,7 +1717,7 @@ public class JsonDBTemplate implements JsonDBOperations {
             }
             dbConfig.setCipher(newCipher);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            log.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
+            logger.error("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
             throw new JsonDBException("Error when encrypting value for a @Secret annotated field for entity: " + collectionName, e);
         } finally {
             for (Entry<String, Map<Object, ?>> entry : collectionsRef.get().entrySet()) {

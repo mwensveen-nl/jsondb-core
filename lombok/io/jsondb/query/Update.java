@@ -18,26 +18,40 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.jsondb.query.ddl;
+package io.jsondb.query;
 
-import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
-import lombok.Getter;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Represents a CollectionUpdate RENAME operation type.
- * 
- * This operation allows for changing the name of a field in a POJO
- *
  * @author Farooq Khan
  * @version 1.0 21 Aug 2016
  */
-public class RenameOperation extends AbstractOperation {
-    @Getter
-    private String newName;
+public class Update {
 
-    public RenameOperation(String newName) {
-        this.operationType = Type.RENAME;
-        this.newName = newName;
-    }
+  private Map<String, Object> updateData;
 
+  public Update() {
+    updateData = new TreeMap<String, Object>();
+  }
+
+  /**
+   * Static factory method to create an Update using the provided key
+   *
+   * @param key the field name for the update operation
+   * @param value  the value to set for the field
+   * @return  Updated object
+   */
+  public static Update update(String key, Object value) {
+    return new Update().set(key, value);
+  }
+
+  public Update set(String key, Object value) {
+    updateData.put(key, value);
+    return this;
+  }
+
+  public Map<String, Object> getUpdateData() {
+    return updateData;
+  }
 }
