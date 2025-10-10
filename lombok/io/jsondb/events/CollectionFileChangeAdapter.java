@@ -18,26 +18,30 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.jsondb.query.ddl;
-
-import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
-import lombok.Getter;
+package io.jsondb.events;
 
 /**
- * Represents a CollectionUpdate RENAME operation type.
- * 
- * This operation allows for changing the name of a field in a POJO
+ * An abstract adapter class for receiving Collection File Change events.
+ * The methods in this class are empty.
+ * This class exists as convenience for creating listener objects.
+ *
+ * Extend this class to create a Collection File Change listener and override only the methods for
+ * the events of interest. (If you implement the CollectionFileChangeListener interface, you have to
+ * define all of the methods in it. This abstract class defines null methods for them all, so you
+ * can only have to define methods for events you care about.)
  *
  * @author Farooq Khan
  * @version 1.0 21 Aug 2016
  */
-public class RenameOperation extends AbstractOperation {
-    @Getter
-    private String newName;
+public abstract class CollectionFileChangeAdapter implements CollectionFileChangeListener {
 
-    public RenameOperation(String newName) {
-        this.operationType = Type.RENAME;
-        this.newName = newName;
-    }
+  @Override
+  public void collectionFileAdded(String collectionName) {  }
+
+  @Override
+  public void collectionFileDeleted(String collectionName) {  }
+
+  @Override
+  public void collectionFileModified(String collectionName) {  }
 
 }

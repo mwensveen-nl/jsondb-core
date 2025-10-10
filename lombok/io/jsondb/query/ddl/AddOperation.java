@@ -21,23 +21,30 @@
 package io.jsondb.query.ddl;
 
 import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
-import lombok.Getter;
 
 /**
- * Represents a CollectionUpdate RENAME operation type.
- * 
- * This operation allows for changing the name of a field in a POJO
+ * Represents a CollectionUpdate ADD operation type.
  *
+ * This operation allows for adding a new field to a POJO
+ * 
  * @author Farooq Khan
  * @version 1.0 21 Aug 2016
  */
-public class RenameOperation extends AbstractOperation {
-    @Getter
-    private String newName;
+public class AddOperation extends AbstractOperation {
+  private Object defaultValue;
+  private boolean isSecret;
 
-    public RenameOperation(String newName) {
-        this.operationType = Type.RENAME;
-        this.newName = newName;
-    }
+  public AddOperation(Object defaultValue, boolean isSecret) {
+    this.operationType = Type.ADD;
+    this.defaultValue = defaultValue;
+    this.isSecret = isSecret;
+  }
 
+  public Object getDefaultValue() {
+    return defaultValue;
+  }
+
+  public boolean isSecret() {
+    return isSecret;
+  }
 }

@@ -21,6 +21,7 @@
 package io.jsondb.query.ddl;
 
 import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
+import lombok.Getter;
 
 /**
  * Represents a CollectionUpdate ADD operation type.
@@ -31,20 +32,15 @@ import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
  * @version 1.0 21 Aug 2016
  */
 public class AddOperation extends AbstractOperation {
-  private Object defaultValue;
-  private boolean isSecret;
+    @Getter
+    private Object defaultValue;
+    @Getter
+    private boolean isSecret;
 
-  public AddOperation(Object defaultValue, boolean isSecret) {
-    this.operationType = Type.ADD;
-    this.defaultValue = defaultValue;
-    this.isSecret = isSecret;
-  }
+    public AddOperation(Object defaultValue, boolean isSecret) {
+        this.operationType = Type.ADD;
+        this.defaultValue = defaultValue;
+        this.isSecret = isSecret;
+    }
 
-  public Object getDefaultValue() {
-    return defaultValue;
-  }
-
-  public boolean isSecret() {
-    return isSecret;
-  }
 }

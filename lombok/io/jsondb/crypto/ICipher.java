@@ -18,26 +18,14 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.jsondb.query.ddl;
-
-import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
-import lombok.Getter;
+package io.jsondb.crypto;
 
 /**
- * Represents a CollectionUpdate RENAME operation type.
- * 
- * This operation allows for changing the name of a field in a POJO
- *
  * @author Farooq Khan
- * @version 1.0 21 Aug 2016
+ * @version 1.0 25-Sep-2016
  */
-public class RenameOperation extends AbstractOperation {
-    @Getter
-    private String newName;
-
-    public RenameOperation(String newName) {
-        this.operationType = Type.RENAME;
-        this.newName = newName;
-    }
-
+public interface ICipher {
+  String encrypt(String plainText);
+  String decrypt(String cipherText);
 }
+

@@ -21,14 +21,14 @@
 package io.jsondb.query.ddl;
 
 import io.jsondb.query.ddl.CollectionSchemaUpdate.Type;
+import lombok.Getter;
 
 /**
  * @author Farooq Khan
  * @version 1.0 21 Aug 2016
  */
 public abstract class AbstractOperation implements IOperation {
-  protected Type operationType;
-  public Type getOperationType() {
-    return operationType;
-  }
+    @Getter
+    protected Type operationType;
+
 }
