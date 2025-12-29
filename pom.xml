@@ -27,7 +27,7 @@
 		<javassist.version>3.30.2-GA</javassist.version>
 		<org-reflections.version>0.10.2</org-reflections.version>
 		<slf4j-api.version>2.0.17</slf4j-api.version>
-		<spring-beans.version>6.2.11</spring-beans.version>
+		<spring-beans.version>6.2.12</spring-beans.version>
 
 		<hamcrest.version>2.2</hamcrest.version>
 		<junit-jupiter-api.version>5.10.2</junit-jupiter-api.version>
