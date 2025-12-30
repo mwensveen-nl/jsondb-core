@@ -29,7 +29,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.MAVEN_REPO_WRITE}} # GITHUB_TOKEN is the default env for the password of the github server in settings.xml
       run: |
         #set version in pom.xml
-        version=$(mvn exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' --quiet | sed 's/\.[^.]*$//')
+        version=$(mvn  -B -q exec:exec -Dexec.executable=echo -Dexec.args='${project.version}' | sed 's/\.[^.]*$//')
         date=$(date '+%Y%m%d')
         buildnr=${{github.run_number}}
         newversion="$version.$date$buildnr"
@@ -37,6 +37,8 @@ jobs:
         mvn versions:set -DnewVersion="$newversion"
         echo "newVersion=$newversion" >> "$GITHUB_OUTPUT"
     - name: mvn build and deploy
+      env: 
+        GITHUB_TOKEN: ${{ secrets.MAVEN_REPO_WRITE}} # GITHUB_TOKEN is the default env for the password of the github server in settings.xml
       run: mvn -B -q clean verify deploy
     - name: Tag
       env: 
@@ -44,7 +46,8 @@ jobs:
       run: |
         #set git tag
         remote=$(git remote)
-        git tag ${{ steps.set_version.outputs.newversion}}
+        newversion=${{ steps.set_version.outputs.newversion}}
+        git tag "$newversion"
         git push "$remote" "$newversion"
         #reset version in pom.xml
         mvn versions:revert
