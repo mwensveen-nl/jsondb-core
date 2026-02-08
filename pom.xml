@@ -23,7 +23,7 @@
 		<commons-jxpath.version>1.4.0</commons-jxpath.version>
 		<guava.version>33.5.0-jre</guava.version>
 		<jackson.version>2.20.1</jackson.version>
-		<jackson-annotations.version>2.20</jackson-annotations.version>
+		<jackson-annotations.version>2.21</jackson-annotations.version>
 		<org-reflections.version>0.10.2</org-reflections.version>
 		<slf4j-api.version>2.0.17</slf4j-api.version>
 
