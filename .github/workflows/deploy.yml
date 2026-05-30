@@ -16,5 +16,5 @@ jobs:
     steps:
     - uses: mwensveen-nl/github-action/deploy@main
       with:
-        java-version: '21'
+        java-version: '25'
         github-token: ${{ secrets.MAVEN_REPO_WRITE}} 
