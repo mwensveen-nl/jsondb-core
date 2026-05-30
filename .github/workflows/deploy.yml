@@ -14,13 +14,7 @@ jobs:
       contents: write
       packages: read
     steps:
-    - name: Extract Java version from pom.xml
-      id: get-version
-      run: |
-          VERSION=$(grep -oP '(?<=<java.version>).*?(?=</java.version>)' pom.xml | xargs)
-          echo "POM_JAVA_VERSION=$VERSION" >> $GITHUB_ENV
-
     - uses: mwensveen-nl/github-action/deploy@main
       with:
-        java-version: ${{ env.POM_JAVA_VERSION }}
+        java-version: '25'
         github-token: ${{ secrets.MAVEN_REPO_WRITE}} 
