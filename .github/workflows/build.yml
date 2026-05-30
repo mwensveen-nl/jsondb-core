@@ -16,10 +16,15 @@ jobs:
       packages: read
     steps:
     - uses: actions/checkout@v3
+    - name: Extract Java version from pom.xml
+      id: get-version
+      run: |
+          VERSION=$(grep -oP '(?<=<java.version>).*?(?=</java.version>)' pom.xml | xargs)
+          echo "POM_JAVA_VERSION=$VERSION" >> $GITHUB_ENV
     - name: Set up JDK 25
       uses: actions/setup-java@v3
       with:
-        java-version: '25'
+        java-version: ${{ env.POM_JAVA_VERSION }}
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
