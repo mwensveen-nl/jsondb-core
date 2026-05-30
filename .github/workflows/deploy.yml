@@ -22,5 +22,5 @@ jobs:
 
     - uses: mwensveen-nl/github-action/deploy@main
       with:
-        java-version: ${{ env:POM_JAVA_VERSION }}
+        java-version: ${{ env.POM_JAVA_VERSION }}
         github-token: ${{ secrets.MAVEN_REPO_WRITE}} 
